@@ -1,0 +1,81 @@
+{% extends "Base.html" %}
+
+{% block content %}
+<div class="container text-center">
+
+    <h2>Face Recognition System</h2>
+    <button class="btn border-none text-light" style="background-color: #4cc3c8;" id="startCamera">Start Camera</button>
+    <button class="btn btn-secondary" id="stopCamera" disabled>Stop Camera</button> <!-- Disabled initially -->
+    <br><br>
+    <!-- Video feed displayed here -->
+    <img id="videoFeed" src="" style="display: none; width: 600px; height: 400px;margin: auto;border-radius: 10px;
+    border: 2px solid black;" />
+</div>
+
+<script>
+    const startBtn = document.getElementById("startCamera");
+    const stopBtn = document.getElementById("stopCamera");
+    const videoFeed = document.getElementById("videoFeed");
+
+    // Function to check if camera is running
+    async function checkCameraStatus() {
+        try {
+            const response = await fetch("http://127.0.0.1:5001/camera_status");
+            const data = await response.json();
+
+            if (data.running) {
+                videoFeed.src = "http://127.0.0.1:5001/video_feed";
+                videoFeed.style.display = "block";
+                stopBtn.disabled = false;  // Enable stop button
+            } else {
+                videoFeed.src = "";
+                videoFeed.style.display = "none";
+                stopBtn.disabled = true;  // Disable stop button
+            }
+        } catch (error) {
+            console.error("Error checking camera status:", error);
+        }
+    }
+
+    // Start camera
+    startBtn.addEventListener("click", async () => {
+        try {
+            const response = await fetch("http://127.0.0.1:5001/start_camera", { method: "POST" });
+            const data = await response.json();
+            console.log(data.message);
+
+            setTimeout(() => {
+                videoFeed.src = "http://127.0.0.1:5001/video_feed";
+                videoFeed.style.display = "block";
+                stopBtn.disabled = false;  // Enable stop button after camera starts
+            }, 2000);
+        } catch (error) {
+            console.error("Error starting camera:", error);
+        }
+    });
+
+    // Stop camera
+    stopBtn.addEventListener("click", async () => {
+        try {
+            const response = await fetch("http://127.0.0.1:5001/stop_camera", { method: "POST" });
+            const data = await response.json();
+            console.log(data.message);
+
+            videoFeed.src = "";
+            videoFeed.style.display = "none";
+            stopBtn.disabled = true;  // Disable stop button when camera stops
+        } catch (error) {
+            console.error("Error stopping camera:", error);
+        }
+    });
+
+    // Check camera status when page loads
+    window.onload = checkCameraStatus;
+
+</script>
+
+
+</body>
+
+</html>
+{% endblock %}
